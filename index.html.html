@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>熵禾有限公司 - 進階淨利計算機</title>
+    <style>
+        :root {
+            --bg-color: #f9f6f0;
+            --card-bg: #ffffff;
+            --primary: #8d7b68;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #e5e5e5;
+        }
+        body { margin: 0; font-family: 'Helvetica Neue', Arial, '微軟正黑體', sans-serif; background-color: var(--bg-color); color: var(--text-main); padding: 20px; }
+        
+        .container { max-width: 600px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); border: 1px solid var(--border-color); }
+        h2 { text-align: center; color: var(--primary); margin-top: 0; margin-bottom: 25px; letter-spacing: 1px; }
+
+        .section-title { font-size: 14px; color: var(--primary); margin: 25px 0 12px; font-weight: bold; border-left: 4px solid var(--primary); padding-left: 8px; text-transform: uppercase; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: bold; color: #555; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
+        .form-group input:focus { border-color: var(--primary); outline: none; }
+
+        /* 雙欄並排設定 */
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-group { flex: 1; }
+
+        .calc-btn { width: 100%; padding: 14px; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: 0.2s; }
+        .calc-btn:hover { background-color: #7a6a58; }
+
+        /* 結果顯示區域 */
+        .result-box { margin-top: 30px; background: #fdfcf8; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; }
+        .result-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; }
+        .result-row.sub { color: var(--text-muted); font-size: 14px; padding-left: 10px; }
+        .result-row.total { border-top: 2px dashed #ddd; padding-top: 12px; margin-top: 12px; font-weight: bold; font-size: 18px; }
+        .result-row.net { border-top: 2px solid var(--primary); padding-top: 15px; margin-top: 15px; font-weight: bold; font-size: 20px; color: #d9534f; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>熵禾有限公司 - 財務淨利計算機</h2>
+
+        <!-- 1. 營業收入與成本 -->
+        <div class="form-group">
+            <label>營業收入 (NT$)</label>
+            <input type="number" id="revenue" value="100000" oninput="calculate()">
+        </div>
+        <div class="form-group">
+            <label>銷貨成本 (NT$)</label>
+            <input type="number" id="cogs" value="40000" oninput="calculate()">
+        </div>
+
+        <!-- 2. 營業費用細項 -->
+        <div class="section-title">營業費用細項</div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label>薪資 (NT$)</label>
+                <input type="number" id="exp_salary" value="15000" oninput="calculate()">
+            </div>
+            <div class="form-group">
+                <label>抽成比例 (%)</label>
+                <input type="number" id="exp_commission_rate" value="26" step="0.1" oninput="calculate()">
+                <small style="color:var(--text-muted); font-size:12px;">(預設26%，依營收計算)</small>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>水電 (NT$)</label>
+                <input type="number" id="exp_utilities" value="2000" oninput="calculate()">
+            </div>
+            <div class="form-group">
+                <label>飲用水 (NT$)</label>
+                <input type="number" id="exp_water" value="500" oninput="calculate()">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>房租 (NT$)</label>
+            <input type="number" id="exp_rent" value="10000" oninput="calculate()">
+        </div>
+
+        <!-- 3. 計算按鈕 -->
+        <button class="calc-btn" onclick="calculate()">立即重新計算</button>
+
+        <!-- 4. 結果輸出區 -->
+        <div class="result-box" id="resultBox">
+            <div class="result-row">
+                <span>毛利 (收入 - 成本)：</span>
+                <strong id="outGrossProfit">NT$ 0</strong>
+            </div>
+            <div class="result-row">
+                <span>營業費用總計：</span>
+                <strong id="outTotalExpense">NT$ 0</strong>
+            </div>
+            <div class="result-row sub">
+                <span>└ 抽成金額：</span>
+                <span id="outCommissionAmount">NT$ 0</span>
+            </div>
+            <div class="result-row">
+                <span>稅前淨利：</span>
+                <strong id="outPreTaxProfit">NT$ 0</strong>
+            </div>
+            <div class="result-row">
+                <span>稅金總計：</span>
+                <strong id="outTotalTax">NT$ 0</strong>
+            </div>
+            <div class="result-row sub">
+                <span>└ 營業稅 (5%)：</span>
+                <span id="outBusinessTax">NT$ 0</span>
+            </div>
+            <div class="result-row sub">
+                <span>└ 營所稅 (級距公式)：</span>
+                <span id="outIncomeTax">NT$ 0</span>
+            </div>
+            <div class="result-row net">
+                <span>最終淨利：</span>
+                <span id="outNetProfit">NT$ 0</span>
+            </div>
+            <div class="result-row" style="margin-top: 10px; color: var(--primary);">
+                <span>淨利率：</span>
+                <strong id="outMargin">0%</strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            // 1. 取得輸入數值
+            let revenue = parseFloat(document.getElementById('revenue').value) || 0;
+            let cogs = parseFloat(document.getElementById('cogs').value) || 0;
+            
+            let salary = parseFloat(document.getElementById('exp_salary').value) || 0;
+            let commissionRate = parseFloat(document.getElementById('exp_commission_rate').value) || 0;
+            let utilities = parseFloat(document.getElementById('exp_utilities').value) || 0;
+            let water = parseFloat(document.getElementById('exp_water').value) || 0;
+            let rent = parseFloat(document.getElementById('exp_rent').value) || 0;
+
+            // 2. 核心公式計算
+            // 毛利 = 收入 - 成本
+            let grossProfit = revenue - cogs;
+
+            // 抽成金額 = 營業收入 * (抽成% / 100)
+            let commissionAmount = revenue * (commissionRate / 100);
+
+            // 營業費用總計
+            let totalExpense = salary + commissionAmount + utilities + water + rent;
+
+            // 稅前淨利 = 毛利 - 營業費用總計
+            let preTaxProfit = grossProfit - totalExpense;
+
+            // 3. 稅金計算
+            // 營業稅 (以營業收入 5% 計算)
+            let businessTax = revenue * 0.05;
+
+            // 營所稅計算 (依我國稅法規定之課稅所得額級距公式)
+            // 累進計算：若稅前淨利 <= 120,000 免徵；12萬~25萬超過部分50%；超過25萬按20%
+            let incomeTax = 0;
+            let taxableIncome = preTaxProfit > 0 ? preTaxProfit : 0;
+            
+            if (taxableIncome <= 120000) {
+                incomeTax = 0;
+            } else if (taxableIncome <= 250000) {
+                incomeTax = (taxableIncome - 120000) * 0.5;
+            } else {
+                incomeTax = taxableIncome * 0.20;
+            }
+
+            let totalTax = businessTax + incomeTax;
+
+            // 4. 最終淨利與淨利率
+            let netProfit = preTaxProfit - totalTax;
+            let margin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+
+            // 5. 輸出至畫面 (自動加上千分位與整數四捨五入)
+            document.getElementById('outGrossProfit').innerText = `NT$ ${Math.round(grossProfit).toLocaleString()}`;
+            document.getElementById('outTotalExpense').innerText = `NT$ ${Math.round(totalExpense).toLocaleString()}`;
+            document.getElementById('outCommissionAmount').innerText = `NT$ ${Math.round(commissionAmount).toLocaleString()}`;
+            document.getElementById('outPreTaxProfit').innerText = `NT$ ${Math.round(preTaxProfit).toLocaleString()}`;
+            document.getElementById('outTotalTax').innerText = `NT$ ${Math.round(totalTax).toLocaleString()}`;
+            document.getElementById('outBusinessTax').innerText = `NT$ ${Math.round(businessTax).toLocaleString()}`;
+            document.getElementById('outIncomeTax').innerText = `NT$ ${Math.round(incomeTax).toLocaleString()}`;
+            document.getElementById('outNetProfit').innerText = `NT$ ${Math.round(netProfit).toLocaleString()}`;
+            document.getElementById('outMargin').innerText = `${margin.toFixed(2)}%`;
+        }
+
+        // 頁面載入時自動執行一次計算
+        window.onload = calculate;
+    </script>
+
+</body>
+</html>
